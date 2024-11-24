@@ -50,7 +50,68 @@ depending what a system we are designing (incooperate user data, e.g. Galway, Ir
 
 user can give a temperature - to select the cluster
 
+%-------------------------------------------------------------------
+
+Algorithm for QE suggestions:
+
+0. have embedding and clustering for vocab in document collection
+1. have query terms q and their embedding [use sentence embedding to make sure additional terms constrict/specify possible similar terms]
+2. get r relevant terms (made up of n and m)
+2.1 get n most similar terms from embedding space
+2.2 get m co-occurence terms from top N returned documents on original query
+3. get corresponding clusters for r
+4. select top k clusters ({balancing max distance and max size}) * use multi resolution clustering to be able to tackle different levels of specificity in the query
+5. get one descriptive term for each cluster (e.g. closest to centroid)
+    -> need to check its not in the original query
+6. return these terms as QE suggestions
+
+
+
+\begin{algorithm}
+    \caption{Query Expansion (QE) Suggestions}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} Query terms $q$ and document collection with embeddings and clustering
+        \State \textbf{Output:} Query expansion (QE) suggestions
+        \State
+        
+        \State \textbf{Step 1:} Get query terms $q$ and their embedding (use sentence embeddings to ensure additional terms constrain/specify possible similar terms)
+        \State \textbf{Step 2:} Get $r$ relevant terms, made up of $n$ and $m$
+        \State \quad \textbf{Step 2.1:} Get $n$ most similar terms from embedding space
+        \State \quad \textbf{Step 2.2:} Get $m$ co-occurrence terms from top $N$ returned documents on the original query
+        \State \textbf{Step 3:} Get corresponding clusters for $r$
+        \State \textbf{Step 4:} Select top $k$ clusters (balancing max distance and max size)
+        \State \quad \textbf{Step 4.1:} Use multi-resolution clustering to address different levels of specificity in the query
+        \State \textbf{Step 5:} Get one descriptive term for each cluster (e.g., closest to centroid)
+        \State \quad \textbf{Step 5.1:} Check that the descriptive term is not in the original query
+        \State \textbf{Step 6:} Return the descriptive terms as QE suggestions
+    \end{algorithmic}
+\end{algorithm}
+
+%-------------------------------------------------------------------
+
+The goal of the query expansion is to improve the search results by adding terms that increase the specificity of the query. 
+(xxx do not want to just add terms to query that further define a given topic bust suggest terms that would clarify which topic is meant) - thats what most methods do but we want diversity + relevance -> use global method and select clusters accordingly
+The terms should be relevant to what has already been provided and diverse in order to cover a wide range of topics. 
+QE is always a tradeoff between recall and precision, xxx here xxx
+% The challenge with the term diversity is that it needs to be diverse on the level of the query, not the entire document collection. xxx do not explicitly mention here, only after algorithm definition
+Our solution incorporates xxxcontext basedxxx as well as pseudo relevance feedback (PRF) based concepts, that is another way to incorporate relevance and diversity in the suggestions.
+
+The algorithmxxx (do we call it that? or heuristic?) takes the query and its embedding as input and is based on the foundation of an embedded and clustered vocabulary of the document collection.
+Based on the embedded query an number of semantically similar terms from the vocabulary as well as cooccurring terms from the top-N returned documents are selected as xxx relevant to query termsxxx.
+Query embedding: here important to capture context/use sentence embedding/... to make sure additional terms constrict/specify possible similar terms and do not expand results
+The clusters which contain these terms are then considered as the clusters that contain candidates for query expansion.
+Since users can only process a limited number of suggestions, the top-k clusters are selected based on a tradeoff between maximal distance and maximal size. (again: diversity (distance) and relevance(size))
+This ensures that a variety of topics is covered while still providing terms that are relevant and have a high probability of being a relevant topic (not just in context of query but generally).
+From these selected clusters the terms that will be suggested are extracted as the terms closest to the centroid, that are not in query of the cluster as it can be assumed, that these are terms that are most descriptive for the cluster.
+
+Use mix of global context based QE and PRF based QE to ensure that terms that are similar as well as terms that co-occur influence the suggestions. Whilst there may be a significant overlap, 
+
+
+Precomputing the vocabulary embedding and clustering reduces runtime complexity significantly. xxx embedding model for query can also be pretrained
+In order to be able to preocess different levels of specificity in the query, a multi resolution clustering approaches could be applied. These allow to select a cluster granularity that is relevant for the given query.
+%Another possible addition to the algorithm would be user data such as the location (coffee -> suggest galway as expansion)
+
 \section{Section TBD.}
-\lipsum[1-4]
+
 
 
