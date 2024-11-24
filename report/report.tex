@@ -1,0 +1,47 @@
+\documentclass[a4paper,12pt]{article}
+
+% Packages
+\usepackage{graphicx}   % figures
+\usepackage{amsmath}    % math symbols
+\usepackage{amssymb}    % more math symbols
+\usepackage{listings}   % code listings
+\usepackage{caption}    % figure/table captions
+\usepackage{geometry}   % adjust the margins
+\usepackage{algorithm}  % algorithms
+\usepackage{algpseudocode} % algorithm pseudo code
+\usepackage{fancyhdr}  % headers and footers
+\usepackage{booktabs} % for nice tables (cmidrule)
+\usepackage{url}
+\usepackage{lipsum}
+\usepackage{myconfig} % my configs
+
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, filecolor=black, urlcolor=black]{hyperref}
+
+% bibliography
+\usepackage[backend=biber,style=numeric, sorting=none]{biblatex}
+
+\addbibresource{/Users/jomi/Documents/literature/library.bib}
+
+% page layout
+\geometry{margin=1in}
+% paragraph layout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.9em}
+
+%%% DOCUMENT %%%    
+\begin{document}
+%%% COVER PAGE %%%
+
+\include{1-cover_page.tex}
+
+%%% START CONTENT %%%
+\include{2-content.tex}
+
+%%% APPENDIX
+\include{3-appendix.tex}
+
+%%% BIBLIOGRAPHY %%%
+\clearpage
+\printbibliography
+
+\end{document}
