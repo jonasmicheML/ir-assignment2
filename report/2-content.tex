@@ -55,6 +55,8 @@
 %-------------------------------------------------------------------
 
 % INTRO
+\subsection*{Answer:}
+
 The goal of the here designed query expansion (QE) heuristic is to enhance search results by adding terms that increase the specificity of a query, by proposing both relanvt and diverse terms for the user to select from. The objective is to design a interactive QE technique, by suggesting a range of terms, the user can then add to the query to refine the search results.
 Our solution integrates a global concept-based technique with a local pseudo-relevance feedback (PRF), combining relevance and diversity to generate more effective query suggestions \cite{azad2019query}. Our approch is defined in high-level algorithmic steps below in Alorithm~\ref{alg:qe}, and desribed in detail in the following.\\
 
@@ -125,98 +127,35 @@ In general a lot of hyperparamters in our algorithm can be adjusted to the speci
 
 \textit{Given the data available, outline an approach that could be adopted to generate these suggested terms. A brief outline is sufficient to capture the main ideas in your approach. The designers of the system wish to take into account previous queries and any similarities between users. Identify the advantages and disadvantages of your approach (briefly).}
 
+\subsection*{Answer:}
 
-% we need a score based on 3 things: 
-% - level 1: freqent searches from from the user (input t1 and t2 ofen with t3 then t3 is a good suggestion)
-% - level 2: same thing but from similar user (how to cluster offline)
+The goal is to develop a system that suggests additional terms for an entered query $q$ based on the recorded history of user queries $H$ (log). Our approach incorporates three levels of scoring. 
 
-% only used if we do not have enough information 
-% - level 3: from all queries that ever happened (e.g. if we have a new user)
-% level 3 is added for new users and poeple who deleted their own history for reasons because its global
+In the whole vocabulary we have candiate terms, that we might want to suggest to the user. We rank these termes based on a score that consists of three components, one based on the users own search history, one based on the search history of similar users and one based on the global set of all queries. By adjusting the weights of these components the score of the term can be adjusted.
+The score is defined as: 
+$$score(t) = \alpha \cdot user\_h\_score(t) + \beta \cdot similar\_u\_score(t) + \gamma \cdot global\_h\_score(t)$$ Where $\alpha$, $\beta$ and $\gamma$ are the weights for the three components. 
+The three subscores are based on the frequency a term occurs given the entered query $q$. This means for the $user\_h\_score(t)$ a co-occurence score is calculated based on how often the term $t$ occurs with the terms in the query $q$ in the users history. The same goes for the other two scores in their respective context (similar users and global history).
 
-The goal is to develop a system that suggests additional terms for a query based on the recorded history of user queries. The approach incorporates three levels of scoring, which utilize the frequency and co-occurrence of terms in the query history at different granularities.
+While the user history and global history are clearly defined, similar users need to be defined as such in order to generate the context (queries from similar users).
+We consider two users to be similar if they have a high similarity in their query history. For simplicity, this is calculated as the average query similarity between two users, given by: $$\text{UserSimilarity}(A, B) = \frac{\sum_{i=1}^m \sum_{j=1}^n \cdot \text{QuerySimilarity}(q_{Ai}, q_{Bj})}{ m \cdot n}$$
+The $\text{QuerySimilarity}(q_{Ai}, q_{Bj})$ function is used to calculate the similarity between two queries and can be calculated by applying metrics like the Jaccard similarity or cosine similarity on the query representations.
+A threshold can be set to define when two users are considered similar. This results in a set of similar users for each user, which can be used to calculate the $similar\_u\_score(t)$. The $similar\_u\_score(t)$ works analogous to the $user\_h\_score(t)$ but is based on the query history of the similar users.
 
-\subsection*{Outline of the Approach}
+Based on the defined score, all terms in the vocabulary can be ranked, and the top $k$ terms can be suggested to the user. The weights $\alpha$, $\beta$, and $\gamma$ can be adjusted to the specific use case to give more weight to the user's history, similar users, or the global history. This weighting can also be adjusted dynamically based avaibale data. This allowes for relvant suggesting even for new users or users with very few similar users, by giving more weight to the global history. This third component adds a global context to the term score and depending on its weight can give `new to the user' terms a chance to be suggested. It also provides a fallback for the case that a user enters unusual terms that are not in the history of the user or similar users or the case of a user being new and having no or very limited history.
 
-\begin{enumerate}
-    \item \textbf{Frequent Searches by the User:} 
-    For the current user, analyze their past query history. If terms \( t_1 \) and \( t_2 \) frequently co-occur with \( t_3 \) in this user's queries, \( t_3 \) should be suggested as an additional term. This is personalized to the user and gives priority to their individual search patterns.
-    \item \textbf{Frequent Searches by Similar Users:} 
-    If the current user has insufficient query history, cluster users based on their query behaviors. Clustering can be done offline using techniques such as $k$-means, hierarchical clustering, or graph-based methods. For instance:
-    \begin{itemize}
-        \item Represent each user's query history as a vector of term frequencies or co-occurrence statistics.
-        \item Compute similarities using measures like cosine similarity or Jaccard similarity.
-        \item Group users into clusters where members have similar search behaviors.
-    \end{itemize}
-    Then, suggest terms based on the aggregated query patterns of users in the same cluster as the current user.
+Since the third component (global history) encompasses the first and second, occurrences in the user's own history and similar users' history receive an additional boost. this can be handled by excluding the user's own history and similar users' history from the global history. But its not necessary since we assume that these components are more relanvant and the boost has no negative influence on the performance.
 
-    \item \textbf{Global Query Patterns:} 
-    For new users or those with no history (e.g., users who have deleted their data), leverage global query data. Identify frequently co-occurring terms in the entire dataset of historical queries and suggest terms based on these patterns. This provides a fallback mechanism when personalized or cluster-based data is unavailable.
-\end{enumerate}
+We chose grouping similar users together based on their average query similarity, to differentiate between two users using the same terms over all query and two users using the same terms in the same combinations. We weight users as similar who use the same terms in the same combinations, as they are more likely to have similar interests and therefore similar queries. It would also be possible to cluster users based on their query history.\\
 
-
-
-\subsubsection*{Advantages}
+\textbf{Advantages:}
 \begin{itemize}
-    \item \textbf{Personalization:} Levels 1 and 2 allow for tailored suggestions based on the user's behavior and that of similar users.
-    \item \textbf{Adaptability:} Level 3 ensures the system works for new users or users with no stored history, maintaining functionality for all scenarios.
-    \item \textbf{Scalability:} Offline clustering of users ensures that the system remains efficient during query processing at runtime.
+    \item \textbf{Adaptability:} Weights can be adjusted based on use-case.
+    \item \textbf{Gobal Aspect:} Does not require extensive user history to provide suggestions (user independent component).
+    \item \textbf{Scalability:} User similarity can be calculated offline and stored for quick access.
 \end{itemize}
 
-\subsubsection*{Disadvantages}
+\textbf{Disadvantages:}
 \begin{itemize}
-    \item \textbf{Cold Start for New Terms:} Rare or novel terms may not be suggested effectively, as they may not appear frequently in the dataset.
-    \item \textbf{New Positions:} Inheriting old search history and user profiles can lead to entirely irrelevant suggestions, for example, if a user changes their position within the company.
-    \item \textbf{Computational Complexity:} Clustering users and maintaining similarity measures can be computationally expensive as the dataset grows.
-    \item \textbf{Privacy Concerns:} While clustering and global statistics are anonymized, using individual query histories (Level 1) could raise privacy issues if not handled appropriately.
+    \item \textbf{Cold Start for New Terms:} Rare or novel terms may not be suggested effectively, as they may not appear frequently in the dataset (gobal and user based).
+    \item \textbf{Out-dated History:} Inheriting old search history and user profiles can lead to entirely irrelevant suggestions, for example, if a user changes their position within the company.
 \end{itemize}
-
-
-
-% ------------------------------------------------------------------------------------
-
-Score that consists of three components, one based on the users search history, one basedon the search history of similar users and one based on the global search history. BY adjusting the weights of these components the score of the term can be adjusted.
-$$score(t) = \alpha \cdot user\_history(t) + \beta \cdot similar\_users(t) + \gamma \cdot global\_history(t)$$
-
-where $\alpha$, $\beta$ and $\gamma$ are the weights for the three components and the three scores are based on the frequency a term occurs given the entered query terms in the respective context.
-These individual term scores for each context are calculated as follows:
-
-\begin{itemize}
-    \item absolute frequency of the term in combination with entered query terms ($t_q$)
-    \item proportion of the term in the context of ($t_q$)
-    \item \dots
-\end{itemize}
-
-Since the contains the first and second as well, occurences in the own users history and similar users history get an additional boost. %xxx or they dont because we take them out?
-This third component adds a globel context to the term score and depending on its weight can give 'new to the user' terms a chance to be suggested.
-It also provides a fallback for the case that a user enters unusual terms that are not in the history of the user or similar users or the case of a user being new and having no or very limited history.
-
-
-
-% a) Similarity score --------------------------------------------------------------------------------------------------------------------------------------
-Two users are considered similar if they not only use the same search terms but also use them in similar combinations - have similar queries.
-For each two users a score is calculated as the average query similarity between two users.
-
-\[
-\text{UserSimilarity}(A, B) = \frac{\sum_{i=1}^n \sum_{j=1}^m w_i \cdot v_j \cdot \text{QuerySimilarity}(q_{Ai}, q_{Bj})}{\sum_{i=1}^n \sum_{j=1}^m w_i \cdot v_j}
-\]
-
-Users that surpass a certain threshold are considered similar users. The threshold can be adjusted to the specific use case. 
-The weights $w_i$ and $v_j$ are used to adjust the importance of the individual queries in the calculation of the similarity score. 
-The QuerySimilarity function is used to calculate the similarity between two queries and can be calculated by applying metrics like the Jaccard similarity or cosine similarity on the query representations.
-The similarity score is then normalised by the length of the queries.
-
-
-% b) User clustering --------------------------------------------------------------------------------------------------------------------------------------
-two users are considered similar if they are part of the same cluster. In order to cluster the users, they are represented as a vector of:
-\begin{itemize}
-    \item the embedding of all used terms set (looses query information)
-    \item the frequency of the terms in the user log (looses order information) (different frequency metrics (e.g. number of queries, overall num of uses, normalised frequencies, ...))
-    \item the combined ( pooling/concatenation/...) query embeddings (query embeddings could be sentence based or pooling of term based)
-    \item \dots
-\end{itemize}
-
-These vector representations of the users are then clustered using a clustering algorithm like k-means or hierarchical clustering. 
-The number of clusters can be adjusted to the specific use case.
-The term score is then calculated in the context of the user logs of users that share the same cluster as the user that entered the query. 
-
