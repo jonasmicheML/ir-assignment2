@@ -126,10 +126,48 @@ In general a lot of hyperparamters in our algorithm can be adjusted to the speci
 \textit{Given the data available, outline an approach that could be adopted to generate these suggested terms. A brief outline is sufficient to capture the main ideas in your approach. The designers of the system wish to take into account previous queries and any similarities between users. Identify the advantages and disadvantages of your approach (briefly).}
 
 
+% we need a score based on 3 things: 
+% - level 1: freqent searches from from the user (input t1 and t2 ofen with t3 then t3 is a good suggestion)
+% - level 2: same thing but from similar user (how to cluster offline)
+
+% only used if we do not have enough information 
+% - level 3: from all queries that ever happened (e.g. if we have a new user)
+% level 3 is added for new users and poeple who deleted their own history for reasons because its global
+
+The goal is to develop a system that suggests additional terms for a query based on the recorded history of user queries. The approach incorporates three levels of scoring, which utilize the frequency and co-occurrence of terms in the query history at different granularities.
+
+\subsection*{Outline of the Approach}
+
+\begin{enumerate}
+    \item \textbf{Frequent Searches by the User:} 
+    For the current user, analyze their past query history. If terms \( t_1 \) and \( t_2 \) frequently co-occur with \( t_3 \) in this user's queries, \( t_3 \) should be suggested as an additional term. This is personalized to the user and gives priority to their individual search patterns.
+    \item \textbf{Frequent Searches by Similar Users:} 
+    If the current user has insufficient query history, cluster users based on their query behaviors. Clustering can be done offline using techniques such as $k$-means, hierarchical clustering, or graph-based methods. For instance:
+    \begin{itemize}
+        \item Represent each user's query history as a vector of term frequencies or co-occurrence statistics.
+        \item Compute similarities using measures like cosine similarity or Jaccard similarity.
+        \item Group users into clusters where members have similar search behaviors.
+    \end{itemize}
+    Then, suggest terms based on the aggregated query patterns of users in the same cluster as the current user.
+
+    \item \textbf{Global Query Patterns:} 
+    For new users or those with no history (e.g., users who have deleted their data), leverage global query data. Identify frequently co-occurring terms in the entire dataset of historical queries and suggest terms based on these patterns. This provides a fallback mechanism when personalized or cluster-based data is unavailable.
+\end{enumerate}
 
 
 
+\subsubsection*{Advantages}
+\begin{itemize}
+    \item \textbf{Personalization:} Levels 1 and 2 allow for tailored suggestions based on the user's behavior and that of similar users.
+    \item \textbf{Adaptability:} Level 3 ensures the system works for new users or users with no stored history, maintaining functionality for all scenarios.
+    \item \textbf{Scalability:} Offline clustering of users ensures that the system remains efficient during query processing at runtime.
+\end{itemize}
 
-
-
+\subsubsection*{Disadvantages}
+\begin{itemize}
+    \item \textbf{Cold Start for New Terms:} Rare or novel terms may not be suggested effectively, as they may not appear frequently in the dataset.
+    \item \textbf{New Positions:} Inheriting old search history and user profiles can lead to entirely irrelevant suggestions, for example, if a user changes their position within the company.
+    \item \textbf{Computational Complexity:} Clustering users and maintaining similarity measures can be computationally expensive as the dataset grows.
+    \item \textbf{Privacy Concerns:} While clustering and global statistics are anonymized, using individual query histories (Level 1) could raise privacy issues if not handled appropriately.
+\end{itemize}
 
