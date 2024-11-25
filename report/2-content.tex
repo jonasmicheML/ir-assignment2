@@ -129,33 +129,31 @@ In general a lot of hyperparamters in our algorithm can be adjusted to the speci
 
 \subsection*{Answer:}
 
-The goal is to develop a system that suggests additional terms for an entered query $q$ based on the recorded history of user queries $H$ (log). Our approach incorporates three levels of scoring. 
+The goal is to develop a system that suggests additional terms for an entered query $q$ based on the recorded history of user queries $H$ (log). Our approach incorporates three levels of scoring.
 
-In the whole vocabulary we have candiate terms, that we might want to suggest to the user. We rank these termes based on a score that consists of three components, one based on the users own search history, one based on the search history of similar users and one based on the global set of all queries. By adjusting the weights of these components the score of the term can be adjusted.
-The score is defined as: 
-$$score(t) = \alpha \cdot user\_h\_score(t) + \beta \cdot similar\_u\_score(t) + \gamma \cdot global\_h\_score(t)$$ Where $\alpha$, $\beta$ and $\gamma$ are the weights for the three components. 
-The three subscores are based on the frequency a term occurs given the entered query $q$. This means for the $user\_h\_score(t)$ a co-occurence score is calculated based on how often the term $t$ occurs with the terms in the query $q$ in the users history. The same goes for the other two scores in their respective context (similar users and global history).
+In the whole vocabulary, we have candidate terms that we might want to suggest to the user. We rank these terms based on a score that consists of three components: one based on the user's own search history, one based on the search history of similar users, and one based on the global set of all queries. By adjusting the weights of these components, the score of the term can be fine-tuned.  
+The score is defined as: $$\text{score}(t) = \alpha \cdot \text{user\_h\_score}(t) + \beta \cdot \text{similar\_u\_score}(t) + \gamma \cdot \text{global\_h\_score}(t)$$ Where $\alpha$, $\beta$, and $\gamma$ are the weights for the three components.  
+The three subscores are based on the frequency with which a term occurs given the entered query $q$. This means that for the $\text{user\_h\_score}(t)$, a co-occurrence score is calculated based on how often the term $t$ occurs with the terms in the query $q$ in the user's history. The same logic applies to the other two scores in their respective contexts (similar users and global history).
 
-While the user history and global history are clearly defined, similar users need to be defined as such in order to generate the context (queries from similar users).
-We consider two users to be similar if they have a high similarity in their query history. For simplicity, this is calculated as the average query similarity between two users, given by: $$\text{UserSimilarity}(A, B) = \frac{\sum_{i=1}^m \sum_{j=1}^n \cdot \text{QuerySimilarity}(q_{Ai}, q_{Bj})}{ m \cdot n}$$
-The $\text{QuerySimilarity}(q_{Ai}, q_{Bj})$ function is used to calculate the similarity between two queries and can be calculated by applying metrics like the Jaccard similarity or cosine similarity on the query representations.
-A threshold can be set to define when two users are considered similar. This results in a set of similar users for each user, which can be used to calculate the $similar\_u\_score(t)$. The $similar\_u\_score(t)$ works analogous to the $user\_h\_score(t)$ but is based on the query history of the similar users.
 
-Based on the defined score, all terms in the vocabulary can be ranked, and the top $k$ terms can be suggested to the user. The weights $\alpha$, $\beta$, and $\gamma$ can be adjusted to the specific use case to give more weight to the user's history, similar users, or the global history. This weighting can also be adjusted dynamically based avaibale data. This allowes for relvant suggesting even for new users or users with very few similar users, by giving more weight to the global history. This third component adds a global context to the term score and depending on its weight can give `new to the user' terms a chance to be suggested. It also provides a fallback for the case that a user enters unusual terms that are not in the history of the user or similar users or the case of a user being new and having no or very limited history.
+While the user history and global history are clearly defined, similar users need to be identified as such in order to generate the context (queries from similar users).  
+We consider two users to be similar if they have a high similarity in their query history. For simplicity, this is calculated as the average query similarity between two users, given by: $$\text{UserSimilarity}(A, B) = \frac{\sum_{i=1}^m \sum_{j=1}^n \text{QuerySimilarity}(q_{Ai}, q_{Bj})}{m \cdot n}$$ The $\text{QuerySimilarity}(q_{Ai}, q_{Bj})$ function is used to calculate the similarity between two queries and can be determined by applying metrics like the Jaccard similarity or cosine similarity to the query representations. A threshold can be set to define when two users are considered similar. This results in a set of similar users for each user, which can then be used to calculate the $similar\_u\_score(t)$. The $similar\_u\_score(t)$ works analogously to the $user\_h\_score(t)$ but is based on the query history of similar users.
 
-Since the third component (global history) encompasses the first and second, occurrences in the user's own history and similar users' history receive an additional boost. this can be handled by excluding the user's own history and similar users' history from the global history. But its not necessary since we assume that these components are more relanvant and the boost has no negative influence on the performance.
+Based on the defined score, all terms in the vocabulary can be ranked, and the top $k$ terms can be suggested to the user. The weights $\alpha$, $\beta$, and $\gamma$ can be adjusted to the specific use case to give more weight to the user's history, similar users, or the global history. This weighting can also be adjusted dynamically based on available data. This allows for relevant suggestions even for new users or users with very few similar users, by giving more weight to the global history. This third component adds a global context to the term score and, depending on its weight, can give `new to the user' terms a chance to be suggested. It also provides a fallback in cases where a user enters unusual terms that are not in the history of the user or similar users, or in the case of a user being new and having no or very limited history.
 
-We chose grouping similar users together based on their average query similarity, to differentiate between two users using the same terms over all query and two users using the same terms in the same combinations. We weight users as similar who use the same terms in the same combinations, as they are more likely to have similar interests and therefore similar queries. It would also be possible to cluster users based on their query history.\\
+Since the third component (global history) encompasses the first and second, occurrences in the user's own history and similar users' history receive an additional boost. This can be handled by excluding the user's own history and similar users' history from the global history. However, this is not necessary, as we assume that these components are more relevant and the boost has no negative influence on performance.
+
+We chose to group similar users together based on their average query similarity, to differentiate between two users using the same terms across all queries and two users using the same terms in the same combinations. We weight users as similar if they use the same terms in the same combinations, as they are more likely to have similar interests and therefore similar queries. It would also be possible to cluster users based on their query history.\\
 
 \textbf{Advantages:}
 \begin{itemize}
-    \item \textbf{Adaptability:} Weights can be adjusted based on use-case.
-    \item \textbf{Gobal Aspect:} Does not require extensive user history to provide suggestions (user independent component).
+    \item \textbf{Adaptability:} Weights can be adjusted based on the use case.
+    \item \textbf{Global Aspect:} Does not require extensive user history to provide suggestions (user-independent component).
     \item \textbf{Scalability:} User similarity can be calculated offline and stored for quick access.
 \end{itemize}
 
 \textbf{Disadvantages:}
 \begin{itemize}
-    \item \textbf{Cold Start for New Terms:} Rare or novel terms may not be suggested effectively, as they may not appear frequently in the dataset (gobal and user based).
-    \item \textbf{Out-dated History:} Inheriting old search history and user profiles can lead to entirely irrelevant suggestions, for example, if a user changes their position within the company.
+    \item \textbf{Cold Start for New Terms:} Rare or novel terms may not be suggested effectively, as they may not appear frequently in the dataset (global and user-based).
+    \item \textbf{Outdated History:} Inheriting old search history and user profiles can lead to entirely irrelevant suggestions. For example, if a user changes their position within the company.
 \end{itemize}
