@@ -15,45 +15,6 @@
 
 \textit{to suggest query terms to add to the query. Typically, we wish to give a large range of suggestions to the users capturing potential intended query needs, i.e., high diversity of terms that may capture the intended query context/content.}
 
-
-% Ziel: query expanden können - which makes the querey better 
-% the terms should be relevant (able to expand the query in a meaningful way - find the correct topic), diverse (cover different topics)
-
-
-
-
-% 1. query with q\_n terms, for the whole vocuabulary we get the most similar terms (maybe 1000 t\_n)
-% 2. cluster the t\_n terms into k clusters - then we get the most central term from every cluster
-
-% no terms that were in the query 
-
-% how to get the most describtive terms for the query 
-
-
-% when - runtime vs offline
-
-
-% there are multiple expansion methods out here: 
-% like sysnonm,  related term, contextual, 
-
-% recall vs precision tradeoff what we trying to solve and how we are acutal doing it
-
-% depending what a system we are designing (incooperate user data, e.g. Galway, Ireland, Europe)
-
-% user can give a temperature - to select the cluster
-
-%-------------------------------------------------------------------
-
-% Algorithm for QE suggestions:
-
-% 3. get corresponding clusters for r (all clusters that contain our terms in r + the terms from the query)\\
-% 4. select top k clusters ({balancing max distance and max size}) * use multi resolution clustering to be able to tackle different levels of specificity in the query + FORMEL\\
-% 5. get one descriptive term for each cluster (e.g. closest to centroid) - source\\
-%     -> need to check its not in the original query (if so give the next closed)\\
-% 6. return these terms as QE suggestions - number of retuned terms is defined by the number of clusters (k) - like this since we want for our expansion one term from each cluster to sugest for diversity + iterative anyways \\
-
-%-------------------------------------------------------------------
-
 % INTRO
 \subsection*{Answer:}
 
@@ -99,8 +60,8 @@ The terms that are selected in Step 5 are then returned as the query expansion s
         
         \State \textbf{Step 1:} Get query embedding from $q_{terms}$ (mean pooling)
         \State \textbf{Step 2:} Get $r_{terms}$ relevant terms (union of $s_{terms}$ and $c_{terms}$)
-        \State \quad \textbf{Step 2.1:} Get $n$ most similar terms from embedding space ($s_{terms}$)
-        \State \quad \textbf{Step 2.2:} Get $m$ co-occurrence terms from top $N$ returned documents on the original query  ($c_{terms}$)
+        \State \quad \textbf{Step 2.1:} \hspace*{0.01cm} Get $n$ most similar terms from embedding space ($s_{terms}$)
+        \State \quad \textbf{Step 2.2:} Get $m$ co-occurrence terms from top $N$ returned documents on the \hspace*{2.5cm} original query ($c_{terms}$)
         \State \textbf{Step 3:} Get corresponding clusters for $r_{terms}$
         \State \textbf{Step 4:} Select top $k$ clusters (weighted with size and centriod distance)
         % \State \quad \textbf{Step 4.1:} Use multi-resolution clustering to address different levels of specificity in the query
