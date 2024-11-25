@@ -58,27 +58,6 @@
 The goal of the here designed query expansion (QE) heuristic is to enhance search results by adding terms that increase the specificity of a query, by proposing both relanvt and diverse terms for the user to select from. The objective is to design a interactive QE technique, by suggesting a range of terms, the user can then add to the query to refine the search results.
 Our solution integrates a global concept-based technique with a local pseudo-relevance feedback (PRF), combining relevance and diversity to generate more effective query suggestions \cite{azad2019query}. Our approch is defined in high-level algorithmic steps below in Alorithm~\ref{alg:qe}, and desribed in detail in the following.\\
 
-\begin{algorithm}
-    \caption{Query Expansion (QE) Suggestions}
-    \label{alg:qe}
-    \begin{algorithmic}[1]
-        \State \textbf{Input:} Query terms $q_{terms}$ and document collection with embeddings and clustering
-        \State \textbf{Output:} QE suggestion terms
-        \State
-        
-        \State \textbf{Step 1:} Get query terms $q_{terms}$ and their embedding (WHAT EMBEDDING)
-        \State \textbf{Step 2:} Get $r_{terms}$ relevant terms (union of $s_{terms}$ and $c_{terms}$)
-        \State \quad \textbf{Step 2.1:} Get $n$ most similar terms from embedding space ($s_{terms}$)
-        \State \quad \textbf{Step 2.2:} Get $m$ co-occurrence terms from top $N$ returned documents on the original query  ($c_{terms}$)
-        \State \textbf{Step 3:} Get corresponding clusters for $r_{terms}$
-        \State \textbf{Step 4:} Select top $k$ clusters (weighted with size and centriod distance)
-        % \State \quad \textbf{Step 4.1:} Use multi-resolution clustering to address different levels of specificity in the query
-        \State \textbf{Step 5:} Get one descriptive term for each cluster (e.g., closest to centroid)
-        \State \quad \textbf{Step 5.1:} Check that the descriptive term is not in the original query
-        \State \textbf{Step 6:} Return the descriptive terms as QE suggestions
-    \end{algorithmic}
-\end{algorithm}
-
 \textbf{Step 0 (Input and Output):}\\
 As prerequisite the document collection is preprocessed to have embeddings and clustering for the terms in the collection. This can be done offline to reduce runtime complexity.
 The input to the algorithm is the query terms $q_{terms}$ and the document collection with embeddings and clustering. It has to be noted that during the algorithm we have to embedde the individual query terms as well, so the embedding models has to available.
@@ -89,7 +68,7 @@ The query needs to be embedded in order to further process it. This is done by e
 
 \textbf{Step 2 (Get Relevant Terms):}\\
 After embedding the query terms, the next step is to extract relevant terms $r_{terms}$. There are two types of relevant terms, the most similar terms from the embedding space and the co-occurrence terms from the top $N$ returned documents on the original query. This is done to ensure that we have semanticly similar terms as well as terms that co-occur with the original query terms.
-The semantically similar terms are selected from the embedding space to ensure a search within the entire vocabulary and therefore enhance diversity. \footnote{SOURCE} 
+The semantically similar terms are selected from the embedding space to ensure a search within the entire vocabulary and therefore enhance diversity.
 The co-occurrence terms are selected from the top $N$ returned documents on the original query, utilizing a pseudo-feedback (PRF) approach \cite{azad2019query}. This allowed us to add relevant terms that might occur in the same documents but are not semantically similar.
 Each of the candiate terms is assigned a weight based on the co-occurrence with the original query terms and then the top $m$ terms are selected as co-occurrence terms \cite{azad2019query}.\\
 
@@ -107,9 +86,29 @@ This is done by selecting the term that is closest to the centroid of the cluste
 If this selected terms is already in the original query, the next closest term is selected.\\
 
 \textbf{Step 6 (Return QE Suggestions):}\\
-The terms that are selected in Step 5 are then returned as the query expansion suggestions. The number of returned terms is defined by the number of top clusters $k$. The number $k$ is a restriction to ensure that the user has a limited number of terms to select from to be not overwhelmed with suggestions.\\
+The terms that are selected in Step 5 are then returned as the query expansion suggestions. The number of returned terms is defined by the number of top clusters $k$. The number $k$ is a restriction to ensure that the user has a limited number of terms to select from to be not overwhelmed with suggestions.
+\begin{algorithm}
+    \caption{Query Expansion (QE) Suggestions}
+    \label{alg:qe}
+    \begin{algorithmic}[1]
+        \State \textbf{Input:} Query terms $q_{terms}$ and document collection with embeddings and clustering
+        \State \textbf{Output:} QE suggestion terms
+        \State
+        
+        \State \textbf{Step 1:} Get query embedding from $q_{terms}$ (mean pooling)
+        \State \textbf{Step 2:} Get $r_{terms}$ relevant terms (union of $s_{terms}$ and $c_{terms}$)
+        \State \quad \textbf{Step 2.1:} Get $n$ most similar terms from embedding space ($s_{terms}$)
+        \State \quad \textbf{Step 2.2:} Get $m$ co-occurrence terms from top $N$ returned documents on the original query  ($c_{terms}$)
+        \State \textbf{Step 3:} Get corresponding clusters for $r_{terms}$
+        \State \textbf{Step 4:} Select top $k$ clusters (weighted with size and centriod distance)
+        % \State \quad \textbf{Step 4.1:} Use multi-resolution clustering to address different levels of specificity in the query
+        \State \textbf{Step 5:} Get one descriptive term for each cluster (e.g., closest to centroid)
+        \State \quad \textbf{Step 5.1:} Check that the descriptive term is not in the original query
+        \State \textbf{Step 6:} Return the descriptive terms as QE suggestions
+    \end{algorithmic}
+\end{algorithm}
 
-\textbf{Runtime Complexity:}\\
+\textbf{Reflection:}\\
 By precomputing the vocabulary embedding and clustering as well as the embedding model for the query runtime complexity is significantly reduced. Which allowes for a fast response time for the user. 
 
 In the case our query and the resulting releveant terms are so specidify that we only get one highlevel cluster (e.g., ``jaguar engine horsepower" $\rightarrow$ cluster: ``cars"). In that case we might want lowlevel clusters like the different engines or jaguar models. As a solution instead of just precomputing one clustering, multi-resolution clustering can be used to address different levels of specificity in the query \cite{lutov2019accuracy}. The level of specificity would need to be seleted during runtime wihtin our algorithm before Step 3.
@@ -118,7 +117,7 @@ In general a lot of hyperparamters in our algorithm can be adjusted to the speci
 
 
 \newpage
-\section{Section TBD.}
+\section{Question 2 (10 Marks)}
 
 
 
