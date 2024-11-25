@@ -119,5 +119,48 @@ In general a lot of hyperparamters in our algorithm can be adjusted to the speci
 \newpage
 \section{Question 2 (10 Marks)}
 
+Score that consists of three components, one based on the users search history, one basedon the search history of similar users and one based on the global search history. BY adjusting the weights of these components the score of the term can be adjusted.
+$$score(t) = \alpha \cdot user\_history(t) + \beta \cdot similar\_users(t) + \gamma \cdot global\_history(t)$$
 
+where $\alpha$, $\beta$ and $\gamma$ are the weights for the three components and the three scores are based on the frequency a term occurs given the entered query terms in the respective context.
+These individual term scores for each context are calculated as follows:
+
+\begin{itemize}
+    \item absolute frequency of the term in combination with entered query terms ($t_q$)
+    \item proportion of the term in the context of ($t_q$)
+    \item \dots
+\end{itemize}
+
+Since the contains the first and second as well, occurences in the own users history and similar users history get an additional boost. %xxx or they dont because we take them out?
+This third component adds a globel context to the term score and depending on its weight can give 'new to the user' terms a chance to be suggested.
+It also provides a fallback for the case that a user enters unusual terms that are not in the history of the user or similar users or the case of a user being new and having no or very limited history.
+
+
+
+% a) Similarity score --------------------------------------------------------------------------------------------------------------------------------------
+Two users are considered similar if they not only use the same search terms but also use them in similar combinations - have similar queries.
+For each two users a score is calculated as the average query similarity between two users.
+
+\[
+\text{UserSimilarity}(A, B) = \frac{\sum_{i=1}^n \sum_{j=1}^m w_i \cdot v_j \cdot \text{QuerySimilarity}(q_{Ai}, q_{Bj})}{\sum_{i=1}^n \sum_{j=1}^m w_i \cdot v_j}
+\]
+
+Users that surpass a certain threshold are considered similar users. The threshold can be adjusted to the specific use case. 
+The weights $w_i$ and $v_j$ are used to adjust the importance of the individual queries in the calculation of the similarity score. 
+The QuerySimilarity function is used to calculate the similarity between two queries and can be calculated by applying metrics like the Jaccard similarity or cosine similarity on the query representations.
+The similarity score is then normalised by the length of the queries.
+
+
+% b) User clustering --------------------------------------------------------------------------------------------------------------------------------------
+two users are considered similar if they are part of the same cluster. In order to cluster the users, they are represented as a vector of:
+\begin{itemize}
+    \item the embedding of all used terms set (looses query information)
+    \item the frequency of the terms in the user log (looses order information) (different frequency metrics (e.g. number of queries, overall num of uses, normalised frequencies, ...))
+    \item the combined ( pooling/concatenation/...) query embeddings (query embeddings could be sentence based or pooling of term based)
+    \item \dots
+\end{itemize}
+
+These vector representations of the users are then clustered using a clustering algorithm like k-means or hierarchical clustering. 
+The number of clusters can be adjusted to the specific use case.
+The term score is then calculated in the context of the user logs of users that share the same cluster as the user that entered the query. 
 
